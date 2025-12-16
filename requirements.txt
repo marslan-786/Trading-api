@@ -1,8 +1,10 @@
 fastapi
 uvicorn
-python-telegram-bot
+websocket-client
+requests
+beautifulsoup4
 motor
 dnspython
 pytz
-httpx
-git+https://github.com/cleitonleonel/pyquotex.git
+certifi
+urllib3
