@@ -1,34 +1,34 @@
-import os
 import sys
+import os
 import asyncio
 from fastapi import FastAPI
 
 # ==========================================
-# 🛠️ AUTO-FIX FOLDER NAME (سب سے پہلے یہ چلے گا)
+# 🚑 EMERGENCY IMPORT FIX
 # ==========================================
-# اگر 'quotexapi' نام کا فولڈر موجود ہے، تو اسے 'pyquotex' کر دو
-if os.path.exists("quotexapi"):
-    print("🔄 Found 'quotexapi', renaming to 'pyquotex'...")
-    try:
-        os.rename("quotexapi", "pyquotex")
-        print("✅ Folder Renamed Successfully!")
-    except Exception as e:
-        print(f"⚠️ Rename failed (Might be in use or already done): {e}")
-
-# ==========================================
-# 📦 LIBRARIES IMPORT (نام ٹھیک ہونے کے بعد)
-# ==========================================
+# This maps 'pyquotex' to the 'quotexapi' folder
 try:
-    # اب یہ لائن بغیر ایرر کے چلے گی
-    from pyquotex.stable_api import Quotex
+    import quotexapi
+    sys.modules['pyquotex'] = quotexapi
+    # Now we need to map submodules if they are imported directly
+    import quotexapi.stable_api
+    sys.modules['pyquotex.stable_api'] = quotexapi.stable_api
+    
+    # Import the rest normally
+    from quotexapi.stable_api import Quotex
+    print("✅ Successfully mapped quotexapi to pyquotex")
 except ImportError as e:
-    print("❌ CRITICAL ERROR: Library not found even after fix attempt.")
-    print(f"Details: {e}")
-    # اگر اب بھی نہ ملے تو ایپ بند کر دو تاکہ لاگز میں پتا چلے
-    sys.exit(1)
+    print(f"❌ Import Error: {e}")
+    # Fallback: try direct import just in case folder is named correctly
+    try:
+        from pyquotex.stable_api import Quotex
+        print("✅ Imported pyquotex directly")
+    except ImportError:
+        print("❌ Critical: Could not import Quotex library.")
+        sys.exit(1)
 
 # ==========================================
-# ⚙️ CONFIGURATION & CREDENTIALS
+# ⚙️ CONFIGURATION
 # ==========================================
 EMAIL = "marslansalfias@gmail.com"
 PASSWORD = "Arslan@786"
@@ -91,10 +91,8 @@ def get_trade_decision(indicators):
     ema_200 = indicators["ema_200"]
     rsi = indicators["rsi"]
     
-    # CALL: EMA50 > EMA200 AND RSI 40-55
     if ema_50 > ema_200 and 40 < rsi < 55:
         return "CALL"
-    # PUT: EMA50 < EMA200 AND RSI 45-60
     elif ema_50 < ema_200 and 45 < rsi < 60:
         return "PUT"
         
@@ -115,7 +113,6 @@ def home():
 async def get_candles_route(pair: str = "EURUSD", timeframe: int = 60):
     await ensure_connection()
     import time
-    # 3600 seconds = 1 hour history
     candles = await client.get_candles(pair, int(time.time()), 3600, timeframe)
     
     if not candles:
@@ -131,7 +128,6 @@ async def get_candles_route(pair: str = "EURUSD", timeframe: int = 60):
 async def live_signals_route(pair: str = "EURUSD"):
     await ensure_connection()
     import time
-    # Fetch enough candles for EMA 200
     candles = await client.get_candles(pair, int(time.time()), 12000, 60)
     
     if not candles:
