@@ -8,3 +8,4 @@ dnspython
 pytz
 certifi
 urllib3
+numpy
