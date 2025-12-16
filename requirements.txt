@@ -1,5 +1,8 @@
 fastapi
 uvicorn
-pydantic
-requests
+python-telegram-bot
+motor
+dnspython
+pytz
+httpx
 git+https://github.com/cleitonleonel/pyquotex.git
